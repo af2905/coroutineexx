@@ -5,6 +5,7 @@ import android.util.Log
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.Channel
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -23,6 +24,24 @@ class MainActivity : AppCompatActivity() {
         findViewById<View>(R.id.btnRun).setOnClickListener { onRun() }
         findViewById<View>(R.id.btnCancel).setOnClickListener { onCancel() }
 
+        channelSendAndReceive()
+    }
+
+    private fun channelSendAndReceive() {
+        val channel = Channel<User>()
+
+        scope.launch {
+            delay(1000)
+            log("send User")
+            channel.send(User.getDefaultUser())
+            log("send, done")
+        }
+        scope.launch {
+            delay(300)
+            log("receive")
+            val element = channel.receive()
+            log("receive User: name ${element.name}, age ${element.age}, done")
+        }
     }
 
     private fun onRun() {
