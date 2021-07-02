@@ -6,6 +6,7 @@ import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.channels.produce
 import java.text.SimpleDateFormat
 import java.util.*
@@ -126,7 +127,7 @@ class MainActivity : AppCompatActivity() {
             }
 
             launch {
-                for (element in channel) {
+                channel.consumeEach { element ->
                     log("received $element")
                     delay(1000)
                 }
