@@ -6,6 +6,7 @@ import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.produce
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -17,6 +18,7 @@ class MainActivity : AppCompatActivity() {
 
     lateinit var job: Job
 
+    @ExperimentalCoroutinesApi
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -26,7 +28,8 @@ class MainActivity : AppCompatActivity() {
 
         //channelSendAndReceive()
         //channelSendAndReceiveCapacity()
-        channelSendAndReceiveClose()
+        //channelSendAndReceiveClose()
+        produceChannel()
     }
 
     private fun channelSendAndReceive() {
@@ -106,6 +109,27 @@ class MainActivity : AppCompatActivity() {
             for (element in channel) {
                 log("received $element")
                 delay(1000)
+            }
+        }
+    }
+
+    @ExperimentalCoroutinesApi
+    private fun produceChannel() {
+
+        scope.launch {
+            val channel = produce {
+                delay(300)
+                repeat(5) {
+                    log("send $it")
+                    send(it)
+                }
+            }
+
+            launch {
+                for (element in channel) {
+                    log("received $element")
+                    delay(1000)
+                }
             }
         }
     }
