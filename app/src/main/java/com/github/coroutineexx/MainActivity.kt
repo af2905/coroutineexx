@@ -24,7 +24,9 @@ class MainActivity : AppCompatActivity() {
         findViewById<View>(R.id.btnRun).setOnClickListener { onRun() }
         findViewById<View>(R.id.btnCancel).setOnClickListener { onCancel() }
 
-        channelSendAndReceive()
+        //channelSendAndReceive()
+        //channelSendAndReceiveCapacity()
+        channelSendAndReceiveClose()
     }
 
     private fun channelSendAndReceive() {
@@ -34,13 +36,77 @@ class MainActivity : AppCompatActivity() {
             delay(1000)
             log("send User")
             channel.send(User.getDefaultUser())
+            channel.send(User("John", 29))
+            channel.send(User("Mary", 25))
+            channel.close()
             log("send, done")
         }
         scope.launch {
             delay(300)
             log("receive")
-            val element = channel.receive()
-            log("receive User: name ${element.name}, age ${element.age}, done")
+
+            for (element in channel) {
+                log("receive User: name ${element.name}, age ${element.age}, done")
+            }
+        }
+    }
+
+    private fun channelSendAndReceiveCapacity() {
+        val channel = Channel<Int>(3)
+
+        scope.launch {
+            delay(300)
+            repeat(9) {
+                log("send $it")
+                channel.send(it)
+            }
+        }
+
+        scope.launch {
+            log("send 100")
+            channel.send(100)
+            delay(500)
+            log("send 101")
+            channel.send(101)
+        }
+
+        scope.launch {
+            for (element in channel) {
+                log("received $element")
+                delay(1000)
+            }
+        }
+    }
+
+    private fun channelSendAndReceiveClose() {
+        val channel = Channel<Int>()
+
+        scope.launch {
+            coroutineContext[Job]?.invokeOnCompletion {
+                log("channel closed")
+                channel.close()
+            }
+
+            launch {
+                delay(300)
+                repeat(3) {
+                    log("send $it")
+                    channel.send(it)
+                }
+            }
+
+            launch {
+                delay(500)
+                log("send 100")
+                channel.send(100)
+            }
+        }
+
+        scope.launch {
+            for (element in channel) {
+                log("received $element")
+                delay(1000)
+            }
         }
     }
 
